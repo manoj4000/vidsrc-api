@@ -2,7 +2,7 @@ import asyncio
 from typing import List, Optional
 from fastapi import HTTPException
 
-from superembed import MultiembedExtractor
+
 from vidsrcpro import VidsrcStreamExtractor
 from utils import Utilities
 
@@ -52,9 +52,7 @@ class VidsrcMeExtractor:
             extractor = VidsrcStreamExtractor()
             return await extractor.resolve_source(url=source_url, referrer=url)
 
-        elif "multiembed.mov" in final_source_url:
-            extractor = MultiembedExtractor()
-            return await extractor.resolve_source(url=source_url, referrer=url)
+       
 
         return {"stream": None, "subtitle": []}
 
@@ -73,7 +71,7 @@ async def vidsrcmeget(dbid: str, s: Optional[int] = None, e: Optional[int] = Non
     )
 
     sources = []
-    source_names = ["VidSrc PRO", "Superembed"]
+    source_names = ["VidSrc PRO"]
 
     for source_name in source_names:
         source_data = await vse.get_source(dbid, f"https://vidsrc.net/embed/{dbid}")
