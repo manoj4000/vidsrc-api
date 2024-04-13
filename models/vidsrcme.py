@@ -4,7 +4,7 @@ from . import vidsrcpro,superembed
 from .utils import fetch
 SOURCES = ["VidSrc PRO","Superembed"]
 async def get_source(hash:str,url:str):
-    SOURCE_REQUEST = await fetch(f"https://vidsrc.stream/rcp/{hash}",headers={"Referer": url})
+    SOURCE_REQUEST = await fetch(f"https://vidsrc.net/rcp/{hash}",headers={"Referer": url})
     try:
         _html = BeautifulSoup(SOURCE_REQUEST.text, "html.parser")
         _encoded = _html.find("div", {"id": "hidden"}).get("data-h") if _html.find("div", {"id": "hidden"}) else None
