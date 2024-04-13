@@ -1,28 +1,43 @@
-import re,base64
-from .utils import fetch
-from . import subtitle
+import re
+import requests
 
-MAX_TRIES = 10
+from utils import Utilities
+from typing import Optional, Dict
 
-async def handle(location,hash,_seed):
-    request = await fetch(location, headers={"Referer": f"https://vidsrc.stream/rcp/{hash}"})
-    for T in range(MAX_TRIES):
-        hls_url = re.search(r'file:"([^"]*)"', request.text).group(1)
-        hls_url = re.sub(r'\/\/\S+?=', '', hls_url)[2:]     
-        hls_url = re.sub(r"\/@#@\/[^=\/]+==", "", hls_url)
+class VidsrcStreamExtractor:
+    @staticmethod
+    def decode_hls_url(encoded_url: str) -> str:
+        def format_hls_b64(data: str) -> str:
+            encoded_b64 = re.sub(r"\/@#@\/[^=\/]+==", "", data)
+            if re.search(r"\/@#@\/[^=\/]+==", encoded_b64):
+                return format_hls_b64(encoded_b64)
+            return encoded_b64
 
-        hls_url = hls_url.replace('_', '/').replace('-', '+')
-        hls_url = bytearray(base64.b64decode(hls_url))
-        hls_url = hls_url.decode('utf-8')
-        if hls_url != "" and hls_url.endswith('.m3u8'):  
-            break
-    # SET PASS
-    set_pass = re.search(r'var pass_path = "(.*?)";', request.text).group(1)
-    if set_pass.startswith("//"):
-        set_pass = f"https:{set_pass}"
-    await fetch(set_pass, headers={"Referer": hash})
+        formatted_b64 = format_hls_b64(encoded_url[2:])
+        b64_data = Utilities.decode_base64_url_safe(formatted_b64)
+        return b64_data.decode("utf-8")
 
-    subtitles = []
-    subtitles = await subtitle.subfetch(_seed,"eng")
-    return {"stream":hls_url,"subtitle":subtitles}
-    
+    def resolve_source(self, **kwargs) -> Optional[Dict]:
+        req = requests.get(kwargs.get("url"), headers={"Referer": kwargs.get("referrer")})
+        if req.status_code != 200:
+            print(f"[VidsrcStreamExtractor] Failed to retrieve media, status code: {req.status_code}...")
+            return None
+        
+        encoded_hls_url = re.search(r'file:"([^"]*)"', req.text)
+        hls_password_url = re.search(r'var pass_path = "(.*?)";', req.text)
+
+        if not encoded_hls_url or not hls_password_url:
+            print("[VidsrcStreamExtractor] Failed to extract hls or password url...")
+            return None
+        
+        hls_password_url = hls_password_url.group(1)
+        if hls_password_url.startswith("//"):
+            hls_password_url = f"https:{hls_password_url}"
+
+        hls_url = self.decode_hls_url(encoded_hls_url.group(1))
+        requests.get(hls_password_url, headers={"Referer": kwargs.get("referrer")}) # 26/01/2024 - this isnt necessary, also actual source calls this continuously
+
+        return {
+            "streams": [hls_url],
+            "subtitles": {}
+        }
