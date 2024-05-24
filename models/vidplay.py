@@ -60,7 +60,8 @@ async def handle(url) -> dict:
     if type(req_data.get("result")) == dict:
         return {
             'stream':req_data.get("result").get("sources", [{}])[0].get("file"),
-            'subtitle':subtitles
+            'subtitle':subtitles, 
+            'vidplay' :url
         }
     else:
         return {}
