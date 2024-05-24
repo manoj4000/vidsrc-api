@@ -7,7 +7,7 @@ VIDSRC_KEY:str = "WXrUARXb1aDLaZjI"
 SOURCES:list = ['Vidplay','Filemoon']
 
 async def get_source(source_id:str,SOURCE_NAME:str) -> str:
-    api_request:str = await fetch(f"https://vidsrc.to/ajax/embed/source/{source_id}")
+    api_request:str = await fetch(f"https://playsrc.xyz/ajax/embed/source/{source_id}")
     if api_request.status_code == 200:
         try:
             data:dict = api_request.json()
@@ -33,7 +33,7 @@ async def get_stream(source_url:str,SOURCE_NAME:str):
 
 async def get(dbid:str,s:int=None,e:int=None):
     media = 'tv' if s is not None and e is not None else "movie"
-    id_url = f"https://vidsrc.to/embed/{media}/{dbid}" + (f"/{s}/{e}" if s and e else '')
+    id_url = f"https://playsrc.xyz/embed/{media}/{dbid}" + (f"/{s}/{e}" if s and e else '')
     id_request = await fetch(id_url)
     if id_request.status_code == 200:
         try:
