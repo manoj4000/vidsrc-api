@@ -42,7 +42,7 @@ async def get(dbid:str,s:int=None,e:int=None):
             if sources_code == None:
                 return await error("media unavailable.")
             else:
-                source_id_request = await fetch(f"https://vidsrc.to/ajax/embed/episode/{sources_code}/sources")
+                source_id_request = await fetch(f"https://playsrc.xyz/ajax/embed/episode/{sources_code}/sources")
                 source_id = source_id_request.json()['result']
                 SOURCE_RESULTS = []
                 for source in source_id:
